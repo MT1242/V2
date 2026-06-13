@@ -88,7 +88,7 @@ class App(ctk.CTk):
         # --- KHỞI TẠO GIAO DIỆN ---
         self.setup_sidebar()
 
-        self.main_view = ctk.CTkFrame(self, fg_color="#f5f5f5", corner_radius=0)
+        self.main_view = ctk.CTkFrame(self, fg_color=("#f2f2f7", "#000000"), corner_radius=0)
         self.main_view.grid(row=0, column=1, sticky="nsew")
 
         self.setup_frames()
@@ -166,7 +166,7 @@ class App(ctk.CTk):
             print(f"Lỗi nạp icon sidebar: {e}")
             img_dash = img_gift = img_admin = img_ban = img_stats = None
 
-        self.sidebar_frame = ctk.CTkFrame(self, width=240, corner_radius=0, fg_color=("#1a1a1a", "#0a0a0a"))
+        self.sidebar_frame = ctk.CTkFrame(self, width=240, corner_radius=0, fg_color=("#ffffff", "#000000"))
         self.sidebar_frame.grid(row=0, column=0, sticky="nsew")
         self.sidebar_frame.grid_rowconfigure(6, weight=1)
 
@@ -180,7 +180,7 @@ class App(ctk.CTk):
                      text_color="#888").pack(anchor="w", pady=(2, 0))
 
         # Divider
-        ctk.CTkLabel(self.sidebar_frame, text="", fg_color="#333", height=1).pack(fill="x", padx=15, pady=(0, 15))
+        ctk.CTkLabel(self.sidebar_frame, text="", fg_color=("#e5e5ea", "#1c1c1e"), height=1).pack(fill="x", padx=15, pady=(0, 15))
 
         self.btn_dash      = self.create_nav_btn(" Dashboard",       img_dash,  lambda: self.show_frame("Dashboard"),     active=True)
         self.btn_gift      = self.create_nav_btn(" Lịch sử quà",     img_gift,  lambda: self.show_frame("Lịch sử quà"))
@@ -194,9 +194,10 @@ class App(ctk.CTk):
     def create_nav_btn(self, text, image, command, active=False):
         btn = ctk.CTkButton(
             self.sidebar_frame, text=text, image=image, anchor="w",
-            height=48, corner_radius=10, font=("Arial", 12),
-            fg_color="#fe2c55" if active else "#2a2a2a",
-            text_color="#ffffff", hover_color="#ff5577" if active else "#3a3a3a",
+            height=48, corner_radius=12, font=("Arial", 13, "bold"),
+            fg_color="#fe2c55" if active else "transparent",
+            text_color="#ffffff" if active else ("#000000", "#ffffff"), 
+            hover_color="#ff5577" if active else ("#f2f2f7", "#1c1c1e"),
             command=command
         )
         btn.pack(fill="x", padx=12, pady=6)
@@ -274,7 +275,7 @@ class App(ctk.CTk):
             img_gift = img_key = img_emoji = img_pause = img_trash = img_report = None
 
         # Top Bar
-        top_bar = ctk.CTkFrame(parent, height=110, fg_color=("#ffffff", "#1e1e1e"), corner_radius=12)
+        top_bar = ctk.CTkFrame(parent, height=110, fg_color=("#ffffff", "#1c1c1e"), corner_radius=20)
         top_bar.pack(fill="x", padx=15, pady=15)
         top_bar.pack_propagate(False)
 
@@ -288,79 +289,78 @@ class App(ctk.CTk):
         buttons_frame = ctk.CTkFrame(actions_frame, fg_color="transparent")
         buttons_frame.pack(fill="x")
 
-        ctk.CTkButton(buttons_frame, text=" Quà tặng", image=img_gift, compound="left", width=100, height=50, fg_color="#fe2c55",
-                      hover_color="#e11d48", text_color="#fff", font=("Arial", 14),
+        ctk.CTkButton(buttons_frame, text=" Quà tặng", image=img_gift, compound="left", width=100, height=50, corner_radius=14, fg_color="#fe2c55",
+                      hover_color="#e11d48", text_color="#fff", font=("Arial", 14, "bold"),
                       command=lambda: self.open_modal("Quà tặng")).pack(side="left", padx=5)
 
-        ctk.CTkButton(buttons_frame, text=" Từ khóa", image=img_key, compound="left", width=100, height=50, fg_color="#ef4444",
-                      hover_color="#dc2626", text_color="#fff", font=("Arial", 14),
+        ctk.CTkButton(buttons_frame, text=" Từ khóa", image=img_key, compound="left", width=100, height=50, corner_radius=14, fg_color="#0a84ff",
+                      hover_color="#007aff", text_color="#fff", font=("Arial", 14, "bold"),
                       command=lambda: self.open_modal("Từ khóa")).pack(side="left", padx=5)
 
-        ctk.CTkButton(buttons_frame, text=" Emoji", image=img_emoji, compound="left", width=100, height=50, fg_color="#f59e0b",
-                      hover_color="#d97706", text_color="#fff", font=("Arial", 14),
+        ctk.CTkButton(buttons_frame, text=" Emoji", image=img_emoji, compound="left", width=100, height=50, corner_radius=14, fg_color="#ff9f0a",
+                      hover_color="#ff9500", text_color="#fff", font=("Arial", 14, "bold"),
                       command=lambda: self.open_modal("Emoji")).pack(side="left", padx=5)
 
-        btn_conn = ctk.CTkButton(top_bar, text="Kết nối Live", width=140, height=40,
+        btn_conn = ctk.CTkButton(top_bar, text="Kết nối Live", width=140, height=40, corner_radius=20,
                                  fg_color="#fe2c55", hover_color="#e11d48",
-                                 text_color="#fff", font=("Arial", 12, "bold"),
+                                 text_color="#fff", font=("Arial", 13, "bold"),
                                  command=self.toggle_connection)
         btn_conn.pack(side="right", padx=15, pady=15)
         self.connect_buttons.append(btn_conn)
 
         # Log Area
-        log_container = ctk.CTkFrame(parent, fg_color=("#ffffff", "#1e1e1e"), corner_radius=12)
+        log_container = ctk.CTkFrame(parent, fg_color=("#ffffff", "#1c1c1e"), corner_radius=20)
         log_container.pack(fill="both", expand=True, padx=15, pady=(0, 15))
 
         header = ctk.CTkFrame(log_container, fg_color="transparent")
         header.pack(fill="x", padx=20, pady=15)
 
         ctk.CTkLabel(header, text=" 📋 Nhật ký Live", 
-                     text_color=("#000", "#fff"),
-                     font=("Arial", 16, "bold")).pack(side="left")
+                     text_color=("#000000", "#ffffff"),
+                     font=("Arial", 18, "bold")).pack(side="left")
 
         self.status_label = ctk.CTkLabel(header, text="● Offline",
-                                         text_color="#999",
-                                         font=("Arial", 12, "bold"))
+                                         text_color="#8e8e93",
+                                         font=("Arial", 13, "bold"))
         self.status_label.pack(side="right")
 
         self.log_box = ctk.CTkTextbox(
             log_container,
-            fg_color=("#fcfcfc", "#121212"),
-            text_color=("#000", "#fff"),
-            border_width=1, border_color=("#ddd", "#333"),
-            corner_radius=8, font=("Consolas", 11)
+            fg_color=("#f2f2f7", "#000000"),
+            text_color=("#000000", "#ffffff"),
+            border_width=0,
+            corner_radius=14, font=("Consolas", 12)
         )
         self.log_box.pack(fill="both", expand=True, padx=20, pady=(0, 15))
 
         footer = ctk.CTkFrame(log_container, fg_color="transparent")
         footer.pack(fill="x", padx=20, pady=15)
 
-        ctk.CTkButton(footer, text="⏸ Tạm dừng TTS", 
-                      fg_color="#fbbf24", text_color="#000",
-                      hover_color="#f59e0b", height=36, font=("Arial", 11, "bold"),
+        ctk.CTkButton(footer, text="⏸ Tạm dừng TTS", corner_radius=18,
+                      fg_color="#ff9500", text_color="#fff",
+                      hover_color="#ff9f0a", height=38, font=("Arial", 12, "bold"),
                       command=self.toggle_pause).pack(side="left", padx=5)
 
-        ctk.CTkButton(footer, text="🗑 Xóa nhật ký", 
-                      fg_color="#ef4444", text_color="#fff",
-                      hover_color="#dc2626", height=36, font=("Arial", 11, "bold"),
+        ctk.CTkButton(footer, text="🗑 Xóa nhật ký", corner_radius=18,
+                      fg_color="#ff3b30", text_color="#fff",
+                      hover_color="#ff453a", height=38, font=("Arial", 12, "bold"),
                       command=lambda: self.log_box.delete("1.0", "end")).pack(side="left", padx=5)
 
     # ==============================
     def create_gift_history_content(self, parent, icon):
-        header = ctk.CTkFrame(parent, height=70, fg_color=("#ffffff", "#1e1e1e"), corner_radius=12)
+        header = ctk.CTkFrame(parent, height=70, fg_color=("#ffffff", "#1c1c1e"), corner_radius=20)
         header.pack(fill="x", padx=15, pady=15)
         header.pack_propagate(False)
 
         ctk.CTkLabel(header, text="🎁 Lịch sử quà tặng", 
-                     text_color=("#000", "#fff"), font=("Arial", 16, "bold")).pack(side="left", padx=15, pady=15)
+                     text_color=("#000000", "#ffffff"), font=("Arial", 18, "bold")).pack(side="left", padx=15, pady=15)
         
-        ctk.CTkButton(header, text="🗑 Xóa lịch sử", fg_color="#ef4444", hover_color="#dc2626",
-                      text_color="#fff", width=140, font=("Arial", 11, "bold"),
+        ctk.CTkButton(header, text="🗑 Xóa lịch sử", fg_color="#ff3b30", hover_color="#ff453a",
+                      text_color="#fff", width=140, corner_radius=15, font=("Arial", 12, "bold"),
                       command=self.clear_gift_history).pack(side="right", padx=15, pady=15)
 
-        self.gift_history_box = ctk.CTkTextbox(parent, fg_color=("#fcfcfc", "#121212"), text_color=("#000", "#fff"),
-                                                border_width=1, border_color=("#ddd", "#333"),
-                                                corner_radius=10, font=("Consolas", 11))
+        self.gift_history_box = ctk.CTkTextbox(parent, fg_color=("#ffffff", "#1c1c1e"), text_color=("#000000", "#ffffff"),
+                                                border_width=0, corner_radius=20, font=("Consolas", 12))
         self.gift_history_box.pack(fill="both", expand=True, padx=15, pady=(0, 15))
         self.gift_history_box.insert("0.0", "📭 Chưa có quà tặng nào")
         self.gift_history_box.configure(state="disabled")
@@ -368,23 +368,22 @@ class App(ctk.CTk):
         self.render_gift_history()
 
     def create_admin_content(self, parent, icon):
-        header = ctk.CTkFrame(parent, height=70, fg_color=("#ffffff", "#1e1e1e"), corner_radius=12)
+        header = ctk.CTkFrame(parent, height=70, fg_color=("#ffffff", "#1c1c1e"), corner_radius=20)
         header.pack(fill="x", padx=15, pady=15)
         header.pack_propagate(False)
 
         ctk.CTkLabel(header, text="👤 Quản trị viên", 
-                     text_color=("#000", "#fff"), font=("Arial", 16, "bold")).pack(side="left", padx=15, pady=15)
+                     text_color=("#000000", "#ffffff"), font=("Arial", 18, "bold")).pack(side="left", padx=15, pady=15)
 
-        main = ctk.CTkFrame(parent, fg_color=("#ffffff", "#1e1e1e"), corner_radius=12)
+        main = ctk.CTkFrame(parent, fg_color=("#ffffff", "#1c1c1e"), corner_radius=20)
         main.pack(fill="both", expand=True, padx=15, pady=(0, 15))
 
         self.admin_status = ctk.CTkLabel(main, text="📊 Trạng thái: Chưa kết nối",
-                                         font=("Arial", 13, "bold"), text_color=("#333", "#ddd"))
+                                         font=("Arial", 14, "bold"), text_color=("#333333", "#dddddd"))
         self.admin_status.pack(anchor="w", padx=20, pady=(20, 10))
 
-        self.admin_details = ctk.CTkTextbox(main, fg_color=("#f8f8f8", "#121212"), text_color=("#000", "#fff"),
-                                            border_width=1, border_color=("#ddd", "#333"),
-                                            corner_radius=8, font=("Consolas", 11), height=200)
+        self.admin_details = ctk.CTkTextbox(main, fg_color=("#f2f2f7", "#000000"), text_color=("#000000", "#ffffff"),
+                                            border_width=0, corner_radius=12, font=("Consolas", 13), height=200)
         self.admin_details.pack(fill="both", expand=True, padx=20, pady=10)
         self.admin_details.insert("0.0", "ℹ️ Thông tin phiên live sẽ hiển thị tại đây.")
         self.admin_details.configure(state="disabled")
@@ -407,14 +406,14 @@ class App(ctk.CTk):
         self.update_admin_page()
 
     def create_stats_content(self, parent, icon):
-        header = ctk.CTkFrame(parent, height=70, fg_color=("#ffffff", "#1e1e1e"), corner_radius=12)
+        header = ctk.CTkFrame(parent, height=70, fg_color=("#ffffff", "#1c1c1e"), corner_radius=20)
         header.pack(fill="x", padx=15, pady=15)
         header.pack_propagate(False)
 
         ctk.CTkLabel(header, text="📊 Thống kê phiên Live",
-                     text_color=("#000", "#fff"), font=("Arial", 16, "bold")).pack(side="left", padx=15, pady=15)
+                     text_color=("#000000", "#ffffff"), font=("Arial", 18, "bold")).pack(side="left", padx=15, pady=15)
 
-        body = ctk.CTkFrame(parent, fg_color=("#ffffff", "#1e1e1e"), corner_radius=12)
+        body = ctk.CTkFrame(parent, fg_color=("#ffffff", "#1c1c1e"), corner_radius=20)
         body.pack(fill="both", expand=True, padx=15, pady=(0, 15))
 
         stat_frame = ctk.CTkFrame(body, fg_color="transparent", corner_radius=12)
@@ -424,20 +423,19 @@ class App(ctk.CTk):
         stat_items = ["Bình luận", "Quà tặng", "Vào phòng", "Lượt thích"]
         
         for label_text in stat_items:
-            frame = ctk.CTkFrame(stat_frame, fg_color=("#f0f0f0", "#2a2a2a"), corner_radius=10, height=80)
-            frame.pack(side="left", expand=True, fill="both", padx=5, pady=5)
+            frame = ctk.CTkFrame(stat_frame, fg_color=("#f2f2f7", "#2c2c2e"), corner_radius=16, height=90)
+            frame.pack(side="left", expand=True, fill="both", padx=8, pady=5)
             frame.pack_propagate(False)
             
-            ctk.CTkLabel(frame, text=label_text, font=("Arial", 12, "bold"),
-                         text_color=("#555", "#aaa")).pack(anchor="center", pady=(15, 5))
+            ctk.CTkLabel(frame, text=label_text, font=("Arial", 13, "bold"),
+                         text_color=("#8e8e93", "#8e8e93")).pack(anchor="center", pady=(18, 5))
             
-            self.stats_labels[label_text] = ctk.CTkLabel(frame, text="0", font=("Arial", 24, "bold"),
-                                                          text_color="#fe2c55")
+            self.stats_labels[label_text] = ctk.CTkLabel(frame, text="0", font=("Arial", 28, "bold"),
+                                                          text_color=("#0a84ff", "#0a84ff"))
             self.stats_labels[label_text].pack(anchor="center", pady=(0, 10))
 
-        self.stats_detail = ctk.CTkTextbox(body, fg_color=("#fcfcfc", "#121212"), text_color=("#000", "#fff"),
-                                           border_width=1, border_color=("#ddd", "#333"),
-                                           corner_radius=8, font=("Consolas", 11))
+        self.stats_detail = ctk.CTkTextbox(body, fg_color=("#f2f2f7", "#000000"), text_color=("#000000", "#ffffff"),
+                                           border_width=0, corner_radius=12, font=("Consolas", 13))
         self.stats_detail.pack(fill="both", expand=True, padx=20, pady=(0, 20))
         self.stats_detail.insert("0.0", "🏆 Top tặng quà sẽ được cập nhật tự động.")
         self.stats_detail.configure(state="disabled")
@@ -622,7 +620,7 @@ class App(ctk.CTk):
         except Exception:
             img_gift = img_key = img_emoji = None
 
-        top_bar = ctk.CTkFrame(parent, height=110, fg_color=("#ffffff", "#1e1e1e"), corner_radius=12)
+        top_bar = ctk.CTkFrame(parent, height=110, fg_color=("#ffffff", "#1c1c1e"), corner_radius=20)
         top_bar.pack(fill="x", padx=15, pady=15)
         top_bar.pack_propagate(False)
 
@@ -636,50 +634,50 @@ class App(ctk.CTk):
         buttons_frame = ctk.CTkFrame(actions_frame, fg_color="transparent")
         buttons_frame.pack(fill="x")
 
-        ctk.CTkButton(buttons_frame, text=" Quà tặng", image=img_gift, compound="left", width=100, height=50, fg_color="#fe2c55",
-                      hover_color="#e11d48", text_color="#fff", font=("Arial", 14),
+        ctk.CTkButton(buttons_frame, text=" Quà tặng", image=img_gift, compound="left", width=100, height=50, corner_radius=14, fg_color="#fe2c55",
+                      hover_color="#e11d48", text_color="#fff", font=("Arial", 14, "bold"),
                       command=lambda: self.open_modal("Quà tặng")).pack(side="left", padx=5)
 
-        ctk.CTkButton(buttons_frame, text=" Từ khóa", image=img_key, compound="left", width=100, height=50, fg_color="#ef4444",
-                      hover_color="#dc2626", text_color="#fff", font=("Arial", 14),
+        ctk.CTkButton(buttons_frame, text=" Từ khóa", image=img_key, compound="left", width=100, height=50, corner_radius=14, fg_color="#0a84ff",
+                      hover_color="#007aff", text_color="#fff", font=("Arial", 14, "bold"),
                       command=lambda: self.open_modal("Từ khóa")).pack(side="left", padx=5)
 
-        ctk.CTkButton(buttons_frame, text=" Emoji", image=img_emoji, compound="left", width=100, height=50, fg_color="#f59e0b",
-                      hover_color="#d97706", text_color="#fff", font=("Arial", 14),
+        ctk.CTkButton(buttons_frame, text=" Emoji", image=img_emoji, compound="left", width=100, height=50, corner_radius=14, fg_color="#ff9f0a",
+                      hover_color="#ff9500", text_color="#fff", font=("Arial", 14, "bold"),
                       command=lambda: self.open_modal("Emoji")).pack(side="left", padx=5)
 
-        btn_conn = ctk.CTkButton(top_bar, text="▶ Kết nối Live", width=140, height=40,
+        btn_conn = ctk.CTkButton(top_bar, text="▶ Kết nối Live", width=140, height=40, corner_radius=20,
                                  fg_color="#fe2c55", hover_color="#e11d48",
-                                 text_color="#fff", font=("Arial", 12, "bold"),
+                                 text_color="#fff", font=("Arial", 13, "bold"),
                                  command=self.toggle_connection)
         btn_conn.pack(side="right", padx=15, pady=15)
         self.connect_buttons.append(btn_conn)
 
-        main_container = ctk.CTkFrame(parent, fg_color=("#ffffff", "#1e1e1e"), corner_radius=12)
+        main_container = ctk.CTkFrame(parent, fg_color=("#ffffff", "#1c1c1e"), corner_radius=20)
         main_container.pack(fill="both", expand=True, padx=15, pady=(0, 15))
 
         header = ctk.CTkFrame(main_container, fg_color="transparent")
         header.pack(fill="x", padx=20, pady=15)
         ctk.CTkLabel(header, text="🚫 Danh sách từ khóa đang chặn",
-                     text_color=("#000", "#fff"), font=("Arial", 16, "bold")).pack(side="left")
+                     text_color=("#000000", "#ffffff"), font=("Arial", 18, "bold")).pack(side="left")
 
-        self.blacklist_scroll = ctk.CTkScrollableFrame(main_container, fg_color=("#f8f8f8", "#2a2a2a"), 
-                                                       corner_radius=10)
+        self.blacklist_scroll = ctk.CTkScrollableFrame(main_container, fg_color=("#f2f2f7", "#000000"), 
+                                                       corner_radius=14)
         self.blacklist_scroll.pack(fill="both", expand=True, padx=20, pady=10)
 
-        footer_input = ctk.CTkFrame(main_container, fg_color=("#f0f0f0", "#2a2a2a"), 
-                                    corner_radius=10, height=70)
+        # ✅ ĐÚNG
+        footer_input = ctk.CTkFrame(main_container, fg_color="transparent", height=70)
         footer_input.pack(fill="x", padx=20, pady=15)
         footer_input.pack_propagate(False)
 
         self.new_ban_entry = ctk.CTkEntry(footer_input, placeholder_text="Nhập từ khóa mới muốn chặn...",
-                                          width=400, height=40, border_width=1,
-                                          border_color=("#ddd", "#444"))
+                                          width=400, height=40, border_width=0, corner_radius=12,
+                                          fg_color=("#f2f2f7", "#2c2c2e"))
         self.new_ban_entry.pack(side="left", padx=15, pady=15)
         self.new_ban_entry.bind("<Return>", lambda e: self.add_blacklist_word())
 
-        ctk.CTkButton(footer_input, text="➕ Thêm từ khóa", fg_color="#10b981", hover_color="#059669",
-                      width=140, height=40, font=("Arial", 11, "bold"),
+        ctk.CTkButton(footer_input, text="➕ Thêm từ khóa", fg_color="#34c759", hover_color="#30d158",
+                      width=140, height=40, corner_radius=12, font=("Arial", 12, "bold"),
                       text_color="#fff", command=self.add_blacklist_word).pack(side="left", padx=10, pady=15)
 
         self.render_blacklist()
@@ -753,7 +751,7 @@ class App(ctk.CTk):
             img_setting = img_audio = img_note = img_paint = None
 
         self.settings_frame = ctk.CTkScrollableFrame(self, width=320, corner_radius=0,
-                                           fg_color=("#f8f8f8", "#1a1a1a"), border_width=1, border_color=("#ddd", "#333"))
+                                           fg_color=("#ffffff", "#1c1c1e"), border_width=0)
         self.settings_frame.grid(row=0, column=2, sticky="nsew")
 
         # Header
@@ -764,7 +762,7 @@ class App(ctk.CTk):
                      font=("Arial", 16, "bold")).pack(anchor="w")
 
         # --- Section 1: Event Switches ---
-        section_frame = ctk.CTkFrame(self.settings_frame, fg_color=("white", "#242424"), corner_radius=10)
+        section_frame = ctk.CTkFrame(self.settings_frame, fg_color=("#f2f2f7", "#2c2c2e"), corner_radius=16)
         section_frame.pack(fill="x", padx=15, pady=10)
 
         ctk.CTkLabel(section_frame, text="Sự kiện", font=("Arial", 12, "bold"), 
@@ -776,7 +774,7 @@ class App(ctk.CTk):
         self.sw_like    = self.create_switch(" Đọc Lượt thích", self.read_like_var, section_frame)
 
         # --- Section 2: Read Mode ---
-        mode_frame = ctk.CTkFrame(self.settings_frame, fg_color=("white", "#242424"), corner_radius=10)
+        mode_frame = ctk.CTkFrame(self.settings_frame, fg_color=("#f2f2f7", "#2c2c2e"), corner_radius=16)
         mode_frame.pack(fill="x", padx=15, pady=10)
 
         ctk.CTkLabel(mode_frame, text="Chế độ đọc", font=("Arial", 12, "bold"),
@@ -793,7 +791,7 @@ class App(ctk.CTk):
         self.read_mode.pack(padx=15, pady=(0, 12), fill="x")
 
         # --- Section 3: Speed & Volume ---
-        audio_frame = ctk.CTkFrame(self.settings_frame, fg_color=("white", "#242424"), corner_radius=10)
+        audio_frame = ctk.CTkFrame(self.settings_frame, fg_color=("#f2f2f7", "#2c2c2e"), corner_radius=16)
         audio_frame.pack(fill="x", padx=15, pady=10)
 
         ctk.CTkLabel(audio_frame, text="Âm thanh", font=("Arial", 12, "bold"),
@@ -842,7 +840,7 @@ class App(ctk.CTk):
         self.volume_slider.pack(fill="x", padx=15, pady=(0, 12))
 
         # --- Section 4: Theme ---
-        theme_frame = ctk.CTkFrame(self.settings_frame, fg_color=("white", "#242424"), corner_radius=10)
+        theme_frame = ctk.CTkFrame(self.settings_frame, fg_color=("#f2f2f7", "#2c2c2e"), corner_radius=16)
         theme_frame.pack(fill="x", padx=15, pady=10)
 
         ctk.CTkLabel(theme_frame, text="Giao diện", font=("Arial", 12, "bold"),
@@ -884,10 +882,10 @@ class App(ctk.CTk):
     def change_theme(self, theme):
         if theme == "Dark":
             ctk.set_appearance_mode("dark")
-            self.settings_frame.configure(fg_color="#1a1a1a", border_color="#333")
+            self.settings_frame.configure(fg_color="#1c1c1e", border_color="#1c1c1e")
         else:
             ctk.set_appearance_mode("light")
-            self.settings_frame.configure(fg_color="#ffffff", border_color="#eee")
+            self.settings_frame.configure(fg_color="#ffffff", border_color="#ffffff")
         self.theme_var.set(theme)
         self.save_settings()
 

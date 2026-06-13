@@ -40,8 +40,34 @@ if getattr(sys, 'frozen', False):
 # =========================================================
 # 🔥 FIX FFMPEG
 # =========================================================
+import urllib.request
+import zipfile
+import io
+
+def download_ffmpeg_if_missing(ffmpeg_path):
+    if os.path.exists(ffmpeg_path):
+        return
+    print("⏳ Đang tải FFmpeg (Lần đầu chạy, vui lòng chờ)...")
+    url = "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl.zip"
+    try:
+        ffmpeg_dir = os.path.dirname(os.path.dirname(ffmpeg_path)) # data/ffmpeg
+        os.makedirs(os.path.join(ffmpeg_dir, "bin"), exist_ok=True)
+        
+        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+        with urllib.request.urlopen(req) as response:
+            with zipfile.ZipFile(io.BytesIO(response.read())) as z:
+                for file_info in z.infolist():
+                    if file_info.filename.endswith("ffmpeg.exe") or file_info.filename.endswith("ffprobe.exe"):
+                        file_info.filename = os.path.basename(file_info.filename)
+                        z.extract(file_info, os.path.join(ffmpeg_dir, "bin"))
+        print("✅ Tải và giải nén FFmpeg thành công!")
+    except Exception as e:
+        print(f"❌ Lỗi tải FFmpeg: {e}")
+
 FFMPEG_PATH = resource_path("data/ffmpeg/bin/ffmpeg.exe")
 FFPROBE_PATH = resource_path("data/ffmpeg/bin/ffprobe.exe")
+
+download_ffmpeg_if_missing(FFMPEG_PATH)
 
 # ENV
 os.environ["FFMPEG_BINARY"] = FFMPEG_PATH
@@ -63,6 +89,15 @@ else:
     startupinfo = None
     CREATE_NO_WINDOW = 0
 
+class HiddenPopen(subprocess.Popen):
+    def __init__(self, *args, **kwargs):
+        kwargs["startupinfo"] = startupinfo
+        kwargs["creationflags"] = (
+            kwargs.get("creationflags", 0) | CREATE_NO_WINDOW
+        )
+        super().__init__(*args, **kwargs)
+
+subprocess.Popen = HiddenPopen
 
 # =========================================================
 # 🎵 PYDUB
@@ -73,21 +108,6 @@ from pydub.audio_segment import AudioSegment as AS
 AudioSegment.converter = FFMPEG_PATH
 AudioSegment.ffmpeg = FFMPEG_PATH
 AudioSegment.ffprobe = FFPROBE_PATH
-
-
-# =========================================================
-# 🔥 PATCH SUBPROCESS
-# =========================================================
-class HiddenPopen(subprocess.Popen):
-    def __init__(self, *args, **kwargs):
-        kwargs["startupinfo"] = startupinfo
-        kwargs["creationflags"] = (
-            kwargs.get("creationflags", 0) | CREATE_NO_WINDOW
-        )
-        super().__init__(*args, **kwargs)
-
-
-subprocess.Popen = HiddenPopen
 
 
 # =========================================================
@@ -173,7 +193,7 @@ class TikTokManager:
         try:
             pygame.mixer.init()
             pygame.mixer.music.set_volume(self.volume)
-            self.log_func("✅ pygame mixer ready")
+            self.log_func("")
         except Exception as e:
             self.log_func(f"❌ Không thể khởi tạo pygame mixer: {e}")
 
