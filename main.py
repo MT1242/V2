@@ -74,6 +74,7 @@ class App(ctk.CTk):
             "gifts": 0,
             "joins": 0,
             "likes": 0,
+            "tts": 0,
             "gift_history": [],
             "top_gifters": {}
         }
@@ -160,6 +161,9 @@ class App(ctk.CTk):
         self.is_connected = True
         self.update_ui_state()
         self.update_admin_page()
+        if hasattr(self, "log_box"):
+            self.log_box.configure(state="normal")
+            self.log_box.delete("1.0", "end")
         self.add_log(f"✅ Đã kết nối tới @{username}")
 
     # ==============================
@@ -210,9 +214,9 @@ class App(ctk.CTk):
         btn = ctk.CTkButton(
             self.sidebar_frame, text=text, image=image, anchor="w",
             height=48, corner_radius=12, font=("Arial", 13, "bold"),
-            fg_color="#fe2c55" if active else "transparent",
-            text_color="#ffffff" if active else ("#000000", "#ffffff"), 
-            hover_color="#ff5577" if active else ("#f2f2f7", "#1c1c1e"),
+            fg_color=("#ffe5ea", "#2a151b") if active else "transparent",
+            text_color="#fe2c55" if active else ("#000000", "#ffffff"), 
+            hover_color=("#ffd1dc", "#3a1a24") if active else ("#f2f2f7", "#1c1c1e"),
             command=command
         )
         btn.pack(fill="x", padx=12, pady=6)
@@ -273,9 +277,9 @@ class App(ctk.CTk):
             self.frames[name].pack(fill="both", expand=True)
         for btn in self.nav_buttons:
             if name in btn.cget("text"):
-                btn.configure(fg_color=("#ff4d6d", "#fe2c55"))
+                btn.configure(fg_color=("#ffe5ea", "#2a151b"), text_color="#fe2c55", hover_color=("#ffd1dc", "#3a1a24"))
             else:
-                btn.configure(fg_color="transparent")
+                btn.configure(fg_color="transparent", text_color=("#000000", "#ffffff"), hover_color=("#f2f2f7", "#1c1c1e"))
 
     # ==============================
     # DASHBOARD
@@ -329,6 +333,18 @@ class App(ctk.CTk):
         btn_conn.pack(side="right", padx=15, pady=15)
         self.connect_buttons.append(btn_conn)
 
+        # Dash Stats
+        self.dash_stats_frame = ctk.CTkFrame(parent, fg_color="transparent")
+        self.dash_stats_frame.pack(fill="x", padx=15, pady=(0, 15))
+        
+        self.dash_labels = {}
+        for label_text in ["Bình luận", "Quà", "Vào phòng", "Like", "Đã đọc TTS"]:
+            frame = ctk.CTkFrame(self.dash_stats_frame, fg_color=("#ffffff", "#1c1c1e"), corner_radius=16)
+            frame.pack(side="left", expand=True, fill="both", padx=5)
+            ctk.CTkLabel(frame, text=label_text, font=("Arial", 11, "bold"), text_color="#8e8e93").pack(anchor="w", padx=15, pady=(15, 0))
+            self.dash_labels[label_text] = ctk.CTkLabel(frame, text="0", font=("Arial", 22, "bold"), text_color=("#000", "#fff"))
+            self.dash_labels[label_text].pack(anchor="w", padx=15, pady=(0, 15))
+
         # Log Area
         log_container = ctk.CTkFrame(parent, fg_color=("#ffffff", "#1c1c1e"), corner_radius=20)
         log_container.pack(fill="both", expand=True, padx=15, pady=(0, 15))
@@ -347,24 +363,27 @@ class App(ctk.CTk):
 
         self.log_box = ctk.CTkTextbox(
             log_container,
-            fg_color=("#f2f2f7", "#000000"),
+            fg_color=("#f8f9fa", "#12141a"),
             text_color=("#000000", "#ffffff"),
             border_width=0,
             corner_radius=14, font=("Consolas", 12)
         )
         self.log_box.pack(fill="both", expand=True, padx=20, pady=(0, 15))
+        self.log_box.insert("0.0", "🔌 Chưa kết nối.\nHãy nhấn Kết nối Live để bắt đầu thu thập dữ liệu...")
 
         footer = ctk.CTkFrame(log_container, fg_color="transparent")
         footer.pack(fill="x", padx=20, pady=15)
 
         ctk.CTkButton(footer, text="⏸ Tạm dừng TTS", corner_radius=18,
-                      fg_color="#ff9500", text_color="#fff",
-                      hover_color="#ff9f0a", height=38, font=("Arial", 12, "bold"),
+                      fg_color="transparent", text_color=("#f59e0b", "#f59e0b"),
+                      border_width=1, border_color="#f59e0b",
+                      hover_color=("#fef3c7", "#451a03"), height=38, font=("Arial", 12, "bold"),
                       command=self.toggle_pause).pack(side="left", padx=5)
 
         ctk.CTkButton(footer, text="🗑 Xóa nhật ký", corner_radius=18,
-                      fg_color="#ff3b30", text_color="#fff",
-                      hover_color="#ff453a", height=38, font=("Arial", 12, "bold"),
+                      fg_color="transparent", text_color=("#ef4444", "#ef4444"),
+                      border_width=1, border_color="#ef4444",
+                      hover_color=("#fef2f2", "#450a0a"), height=38, font=("Arial", 12, "bold"),
                       command=lambda: self.log_box.delete("1.0", "end")).pack(side="left", padx=5)
 
     # ==============================
@@ -444,16 +463,15 @@ class App(ctk.CTk):
         stat_items = ["Bình luận", "Quà tặng", "Vào phòng", "Lượt thích"]
         
         for label_text in stat_items:
-            frame = ctk.CTkFrame(stat_frame, fg_color=("#f2f2f7", "#2c2c2e"), corner_radius=16, height=90)
+            frame = ctk.CTkFrame(stat_frame, fg_color=("#f2f2f7", "#2c2c2e"), corner_radius=16)
             frame.pack(side="left", expand=True, fill="both", padx=8, pady=5)
-            frame.pack_propagate(False)
             
             ctk.CTkLabel(frame, text=label_text, font=("Arial", 13, "bold"),
                          text_color=("#8e8e93", "#8e8e93")).pack(anchor="center", pady=(18, 5))
             
             self.stats_labels[label_text] = ctk.CTkLabel(frame, text="0", font=("Arial", 28, "bold"),
                                                           text_color=("#0a84ff", "#0a84ff"))
-            self.stats_labels[label_text].pack(anchor="center", pady=(0, 10))
+            self.stats_labels[label_text].pack(anchor="center", pady=(0, 18))
 
         self.stats_detail = ctk.CTkTextbox(body, fg_color=("#f2f2f7", "#000000"), text_color=("#000000", "#ffffff"),
                                            border_width=0, corner_radius=12, font=("Consolas", 13))
@@ -513,6 +531,9 @@ class App(ctk.CTk):
             self.session_stats["joins"] += 1
         elif event_type == "like":
             self.session_stats["likes"] += data.get("count", 1)
+        
+        if event_type in ["comment", "gift", "join", "like"]:
+            self.session_stats["tts"] += 1
 
         self.render_stats_page()
         self.render_gift_history()
@@ -558,6 +579,13 @@ class App(ctk.CTk):
         self.stats_labels["Quà tặng"].configure(text=str(self.session_stats["gifts"]))
         self.stats_labels["Vào phòng"].configure(text=str(self.session_stats["joins"]))
         self.stats_labels["Lượt thích"].configure(text=str(self.session_stats["likes"]))
+        
+        if hasattr(self, "dash_labels"):
+            self.dash_labels["Bình luận"].configure(text=str(self.session_stats["comments"]))
+            self.dash_labels["Quà"].configure(text=str(self.session_stats["gifts"]))
+            self.dash_labels["Vào phòng"].configure(text=str(self.session_stats["joins"]))
+            self.dash_labels["Like"].configure(text=str(self.session_stats["likes"]))
+            self.dash_labels["Đã đọc TTS"].configure(text=str(self.session_stats["tts"]))
 
         if hasattr(self, "stats_detail"):
             top_gifters = sorted(self.session_stats["top_gifters"].items(), key=lambda x: x[1], reverse=True)[:5]
@@ -591,7 +619,7 @@ class App(ctk.CTk):
             self.add_log(f"❌ Xóa cache thất bại: {e}")
 
     def reset_statistics(self):
-        self.session_stats = {"comments": 0, "gifts": 0, "joins": 0, "likes": 0, "gift_history": [], "top_gifters": {}}
+        self.session_stats = {"comments": 0, "gifts": 0, "joins": 0, "likes": 0, "tts": 0, "gift_history": [], "top_gifters": {}}
         self.render_stats_page()
         self.render_gift_history()
         self.update_admin_page()
@@ -824,8 +852,8 @@ class App(ctk.CTk):
         section_frame = ctk.CTkFrame(self.settings_frame, fg_color=("#f2f2f7", "#2c2c2e"), corner_radius=16)
         section_frame.pack(fill="x", padx=15, pady=10)
 
-        ctk.CTkLabel(section_frame, text="Sự kiện", font=("Arial", 12, "bold"), 
-                     text_color=("#fe2c55", "#ff5577")).pack(anchor="w", padx=15, pady=(12, 8))
+        ctk.CTkLabel(section_frame, text="SỰ KIỆN", font=("Arial", 11, "bold"), 
+                     text_color=("#8e8e93", "#8e8e93")).pack(anchor="w", padx=15, pady=(12, 8))
 
         self.sw_comment = self.create_switch(" Đọc Comment", self.read_comment_var, section_frame)
         self.sw_gift    = self.create_switch(" Đọc Quà tặng", self.read_gift_var, section_frame)
@@ -836,8 +864,8 @@ class App(ctk.CTk):
         mode_frame = ctk.CTkFrame(self.settings_frame, fg_color=("#f2f2f7", "#2c2c2e"), corner_radius=16)
         mode_frame.pack(fill="x", padx=15, pady=10)
 
-        ctk.CTkLabel(mode_frame, text="Chế độ đọc", font=("Arial", 12, "bold"),
-                     text_color=("#fe2c55", "#ff5577")).pack(anchor="w", padx=15, pady=(12, 8))
+        ctk.CTkLabel(mode_frame, text="CHẾ ĐỘ ĐỌC", font=("Arial", 11, "bold"),
+                     text_color=("#8e8e93", "#8e8e93")).pack(anchor="w", padx=15, pady=(12, 8))
 
         self.read_mode = ctk.CTkOptionMenu(
             mode_frame,
@@ -853,8 +881,8 @@ class App(ctk.CTk):
         audio_frame = ctk.CTkFrame(self.settings_frame, fg_color=("#f2f2f7", "#2c2c2e"), corner_radius=16)
         audio_frame.pack(fill="x", padx=15, pady=10)
 
-        ctk.CTkLabel(audio_frame, text="Âm thanh", font=("Arial", 12, "bold"),
-                     text_color=("#fe2c55", "#ff5577")).pack(anchor="w", padx=15, pady=(12, 8))
+        ctk.CTkLabel(audio_frame, text="ÂM THANH", font=("Arial", 11, "bold"),
+                     text_color=("#8e8e93", "#8e8e93")).pack(anchor="w", padx=15, pady=(12, 8))
 
         # Speed
         speed_header = ctk.CTkFrame(audio_frame, fg_color="transparent")
@@ -902,8 +930,8 @@ class App(ctk.CTk):
         theme_frame = ctk.CTkFrame(self.settings_frame, fg_color=("#f2f2f7", "#2c2c2e"), corner_radius=16)
         theme_frame.pack(fill="x", padx=15, pady=10)
 
-        ctk.CTkLabel(theme_frame, text="Giao diện", font=("Arial", 12, "bold"),
-                     text_color=("#fe2c55", "#ff5577")).pack(anchor="w", padx=15, pady=(12, 8))
+        ctk.CTkLabel(theme_frame, text="GIAO DIỆN", font=("Arial", 11, "bold"),
+                     text_color=("#8e8e93", "#8e8e93")).pack(anchor="w", padx=15, pady=(12, 8))
 
         self.theme_menu = ctk.CTkSegmentedButton(
             theme_frame, values=["Light", "Dark"],
@@ -932,10 +960,14 @@ class App(ctk.CTk):
     def create_switch(self, text, variable, parent=None):
         if parent is None:
             parent = self.settings_frame
-        sw = ctk.CTkSwitch(parent, text=text, text_color=("#333", "#ccc"),
-                           progress_color="#fe2c55", variable=variable,
-                           command=self.save_settings)
-        sw.pack(anchor="w", padx=15, pady=5)
+        frame = ctk.CTkFrame(parent, fg_color="transparent")
+        frame.pack(fill="x", padx=15, pady=5)
+        
+        ctk.CTkLabel(frame, text=text, font=("Arial", 12), text_color=("#333", "#ccc")).pack(side="left")
+        
+        sw = ctk.CTkSwitch(frame, text="", progress_color="#fe2c55", variable=variable,
+                           command=self.save_settings, width=40)
+        sw.pack(side="right")
         return sw
 
     def change_theme(self, theme):
