@@ -360,6 +360,7 @@ class TikTokManager:
     # 🔌 CONNECT (GIỮ NGUYÊN TOÀN BỘ LOGIC CỦA BẠN)
     # =========================================================
     def connect(self, username, app_ref):
+        self.app_ref = app_ref
         if not username:
             self.log_func("❌ Username không hợp lệ!")
             return False
@@ -553,7 +554,17 @@ class TikTokManager:
         self.reconnect_attempts += 1
         delay = min(20, 2 + self.reconnect_attempts * 2)
         self.log_func(f"🔄 Tự nối lại sau {delay}s...")
-        threading.Timer(delay, self._start_client_thread).start()
+        
+        def do_reconnect():
+            if self.is_running and not self.intentionally_disconnected:
+                if self.client:
+                    try:
+                        self.client.stop()
+                    except Exception:
+                        pass
+                self.connect(self.connected_username, getattr(self, "app_ref", None))
+                
+        threading.Timer(delay, do_reconnect).start()
 
     # =========================================================
     # 🔌 DISCONNECT

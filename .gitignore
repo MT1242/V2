@@ -13,3 +13,7 @@ dist/
 # IDE
 .vscode/
 .idea/
+
+# User Data
+data/config/settings.json
+data/blacklist/blacklist.json
