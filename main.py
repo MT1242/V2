@@ -57,6 +57,11 @@ class App(ctk.CTk):
         self.speed_var = ctk.DoubleVar(value=1.0)
         self.volume_var = ctk.DoubleVar(value=1.0)
         self.theme_var = ctk.StringVar(value="Light")
+        
+        self.tpl_comment_var = ctk.StringVar(value="{name} nói: {comment}")
+        self.tpl_gift_var = ctk.StringVar(value="{name} tặng {gift}")
+        self.tpl_join_var = ctk.StringVar(value="{name} đã vào phòng")
+        self.tpl_like_var = ctk.StringVar(value="{name} thả {count} tim")
 
         # Alias variables expected by TikTokManager (keeps backward compatibility)
         self.sw_comment_var = self.read_comment_var
@@ -125,6 +130,10 @@ class App(ctk.CTk):
         self.speed_var.set(self.settings.get("speed", 1.0))
         self.volume_var.set(self.settings.get("volume", 1.0))
         self.theme_var.set(self.settings.get("theme", "Light"))
+        self.tpl_comment_var.set(self.settings.get("text_template_comment", "{name} nói: {comment}"))
+        self.tpl_gift_var.set(self.settings.get("text_template_gift", "{name} tặng {gift}"))
+        self.tpl_join_var.set(self.settings.get("text_template_join", "{name} đã vào phòng"))
+        self.tpl_like_var.set(self.settings.get("text_template_like", "{name} thả {count} tim"))
         ctk.set_appearance_mode(self.theme_var.get().lower())
         if hasattr(self, 'tiktok_manager'):
             self.tiktok_manager.set_speed(self.speed_var.get())
@@ -139,7 +148,11 @@ class App(ctk.CTk):
             "read_mode": self.read_mode_var.get(),
             "speed": round(self.speed_var.get(), 1),
             "volume": round(self.volume_var.get(), 2),
-            "theme": self.theme_var.get()
+            "theme": self.theme_var.get(),
+            "text_template_comment": self.tpl_comment_var.get(),
+            "text_template_gift": self.tpl_gift_var.get(),
+            "text_template_join": self.tpl_join_var.get(),
+            "text_template_like": self.tpl_like_var.get()
         })
         dm.save_json(dm.CONFIG_FILE, self.settings)
 
@@ -162,9 +175,10 @@ class App(ctk.CTk):
             img_admin = ctk.CTkImage(Image.open(os.path.join(icon_path, "user.ico")),      size=icon_size)
             img_ban   = ctk.CTkImage(Image.open(os.path.join(icon_path, "ban.ico")),       size=icon_size)
             img_stats = ctk.CTkImage(Image.open(os.path.join(icon_path, "chart.ico")),     size=icon_size)
+            img_note  = ctk.CTkImage(Image.open(os.path.join(icon_path, "note.ico")),      size=icon_size)
         except Exception as e:
             print(f"Lỗi nạp icon sidebar: {e}")
-            img_dash = img_gift = img_admin = img_ban = img_stats = None
+            img_dash = img_gift = img_admin = img_ban = img_stats = img_note = None
 
         self.sidebar_frame = ctk.CTkFrame(self, width=240, corner_radius=0, fg_color=("#ffffff", "#000000"))
         self.sidebar_frame.grid(row=0, column=0, sticky="nsew")
@@ -187,6 +201,7 @@ class App(ctk.CTk):
         self.btn_admin     = self.create_nav_btn(" Quản trị viên",    img_admin, lambda: self.show_frame("Quản trị viên"))
         self.btn_blacklist = self.create_nav_btn(" Từ khóa bị cấm",  img_ban,   lambda: self.show_frame("Từ khóa bị cấm"))
         self.btn_stats     = self.create_nav_btn(" Thống kê",         img_stats, lambda: self.show_frame("Thống kê"))
+        self.btn_templates = self.create_nav_btn(" Văn bản tùy chỉnh",img_note,  lambda: self.show_frame("Văn bản tùy chỉnh"))
 
         ctk.CTkLabel(self.sidebar_frame, text="Phiên bản 2.0.1",
                      font=("Arial", 11), text_color="#444444").pack(side="bottom", pady=15)
@@ -216,9 +231,10 @@ class App(ctk.CTk):
             img_admin     = ctk.CTkImage(Image.open(os.path.join(icon_path, "user.ico")),  size=size)
             img_ban       = ctk.CTkImage(Image.open(os.path.join(icon_path, "ban.ico")),   size=size)
             img_stats     = ctk.CTkImage(Image.open(os.path.join(icon_path, "chart.ico")), size=size)
+            img_note      = ctk.CTkImage(Image.open(os.path.join(icon_path, "note.ico")),  size=size)
         except Exception as e:
             print(f"Lỗi nạp icon frames: {e}")
-            img_gift_hist = img_admin = img_ban = img_stats = None
+            img_gift_hist = img_admin = img_ban = img_stats = img_note = None
 
         # 1. Dashboard
         dash_f = ctk.CTkFrame(self.main_view, fg_color="transparent")
@@ -244,6 +260,11 @@ class App(ctk.CTk):
         stats_f = ctk.CTkFrame(self.main_view, fg_color="transparent")
         self.create_stats_content(stats_f, img_stats)
         self.frames["Thống kê"] = stats_f
+
+        # 6. Văn bản tùy chỉnh
+        tpl_f = ctk.CTkFrame(self.main_view, fg_color="transparent")
+        self.create_templates_content(tpl_f, img_note)
+        self.frames["Văn bản tùy chỉnh"] = tpl_f
 
     def show_frame(self, name):
         for frame in self.frames.values():
@@ -441,6 +462,44 @@ class App(ctk.CTk):
         self.stats_detail.configure(state="disabled")
 
         self.render_stats_page()
+
+    def create_templates_content(self, parent, icon):
+        header = ctk.CTkFrame(parent, height=70, fg_color=("#ffffff", "#1c1c1e"), corner_radius=20)
+        header.pack(fill="x", padx=15, pady=15)
+        header.pack_propagate(False)
+
+        ctk.CTkLabel(header, text="📝 Văn bản tùy chỉnh",
+                     text_color=("#000000", "#ffffff"), font=("Arial", 18, "bold")).pack(side="left", padx=15, pady=15)
+                     
+        ctk.CTkButton(header, text="💾 Lưu cài đặt", fg_color="#34c759", hover_color="#30d158",
+                      text_color="#fff", width=140, corner_radius=15, font=("Arial", 12, "bold"),
+                      command=self.save_settings).pack(side="right", padx=15, pady=15)
+
+        body = ctk.CTkScrollableFrame(parent, fg_color=("#ffffff", "#1c1c1e"), corner_radius=20)
+        body.pack(fill="both", expand=True, padx=15, pady=(0, 15))
+        
+        # --- Comment ---
+        self._create_template_input(body, "Bình luận (Comment)", self.tpl_comment_var, "Ví dụ: {name} nói: {comment}\nCác biến hỗ trợ: {name}, {comment}")
+        
+        # --- Gift ---
+        self._create_template_input(body, "Tặng quà (Gift)", self.tpl_gift_var, "Ví dụ: {name} tặng {gift}\nCác biến hỗ trợ: {name}, {gift}")
+        
+        # --- Join ---
+        self._create_template_input(body, "Vào phòng (Join)", self.tpl_join_var, "Ví dụ: {name} đã vào phòng\nCác biến hỗ trợ: {name}")
+        
+        # --- Like ---
+        self._create_template_input(body, "Lượt thích (Like)", self.tpl_like_var, "Ví dụ: {name} thả {count} tim\nCác biến hỗ trợ: {name}, {count}")
+
+    def _create_template_input(self, parent, title, variable, hint):
+        frame = ctk.CTkFrame(parent, fg_color=("#f2f2f7", "#2c2c2e"), corner_radius=12)
+        frame.pack(fill="x", padx=20, pady=10)
+        
+        ctk.CTkLabel(frame, text=title, font=("Arial", 14, "bold"), text_color=("#000", "#fff")).pack(anchor="w", padx=15, pady=(15, 5))
+        
+        entry = ctk.CTkEntry(frame, textvariable=variable, width=500, height=40, font=("Arial", 13), border_width=0, fg_color=("#ffffff", "#1c1c1e"))
+        entry.pack(anchor="w", padx=15, pady=5)
+        
+        ctk.CTkLabel(frame, text=hint, font=("Arial", 11), text_color=("#666", "#aaa"), justify="left").pack(anchor="w", padx=15, pady=(0, 15))
 
     def register_live_event(self, event_type, data=None):
         if event_type == "comment":

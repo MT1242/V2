@@ -1,10 +1,10 @@
 {
   "read_comment": true,
-  "read_gift": false,
+  "read_gift": true,
   "read_join": false,
   "read_like": false,
   "read_mode": "Chỉ đọc nội dung CMT",
-  "speed": 1.7,
-  "volume": 0.7,
+  "speed": 1.3,
+  "volume": 1.0,
   "theme": "Dark"
 }

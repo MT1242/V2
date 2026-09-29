@@ -438,7 +438,9 @@ class TikTokManager:
 
             read_mode = getattr(app_ref, "read_mode_var", None)
             if read_mode and read_mode.get() == "Đọc cả Tên + Nội dung":
-                text = f"{nickname} nói: {msg}"
+                template_var = getattr(app_ref, "tpl_comment_var", None)
+                template = template_var.get() if template_var else "{name} nói: {comment}"
+                text = template.replace("{name}", nickname).replace("{comment}", msg)
             else:
                 text = msg
 
@@ -463,7 +465,9 @@ class TikTokManager:
 
             uid, nickname = self._get_user_info(e)
             gift_name = self.gift_map.get(getattr(e.gift, 'name', None), getattr(e.gift, 'name', ''))
-            text = f"🎁 {nickname} tặng {gift_name}"
+            template_var = getattr(app_ref, "tpl_gift_var", None)
+            template = template_var.get() if template_var else "{name} tặng {gift}"
+            text = template.replace("{name}", nickname).replace("{gift}", gift_name)
 
             self.log_func(text)
             self.enqueue_tts(text, self.current_speed)
@@ -483,7 +487,9 @@ class TikTokManager:
                 return
 
             uid, nickname = self._get_user_info(e)
-            text = f"👋 {nickname} đã vào phòng"
+            template_var = getattr(app_ref, "tpl_join_var", None)
+            template = template_var.get() if template_var else "{name} đã vào phòng"
+            text = template.replace("{name}", nickname)
             self.log_func(text)
             self.enqueue_tts(text, self.current_speed)
             if hasattr(app_ref, "register_live_event"):
@@ -506,7 +512,9 @@ class TikTokManager:
             self.like_buffer[uid_key] = self.like_buffer.get(uid_key, 0) + getattr(e, "like_count", 1)
 
             if time.time() - self.like_last.get(uid_key, 0) >= 5:
-                text = f"❤️ {nickname} thả {self.like_buffer[uid_key]} tim"
+                template_var = getattr(app_ref, "tpl_like_var", None)
+                template = template_var.get() if template_var else "{name} thả {count} tim"
+                text = template.replace("{name}", nickname).replace("{count}", str(self.like_buffer[uid_key]))
                 self.log_func(text)
                 self.enqueue_tts(text, self.current_speed)
                 self.like_last[uid_key] = time.time()
