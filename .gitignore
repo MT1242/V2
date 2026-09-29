@@ -17,3 +17,7 @@ dist/
 # User Data
 data/config/settings.json
 data/blacklist/blacklist.json
+data/cache/
+
+# PyInstaller Build output
+*.spec

@@ -205,7 +205,7 @@ class App(ctk.CTk):
         self.btn_admin     = self.create_nav_btn(" Quản trị viên",    img_admin, lambda: self.show_frame("Quản trị viên"))
         self.btn_blacklist = self.create_nav_btn(" Từ khóa bị cấm",  img_ban,   lambda: self.show_frame("Từ khóa bị cấm"))
         self.btn_stats     = self.create_nav_btn(" Thống kê",         img_stats, lambda: self.show_frame("Thống kê"))
-        self.btn_templates = self.create_nav_btn(" Văn bản tùy chỉnh",img_note,  lambda: self.show_frame("Văn bản tùy chỉnh"))
+        self.btn_info      = self.create_nav_btn(" Thông tin tùy chỉnh",img_note,  lambda: self.show_frame("Thông tin tùy chỉnh"))
 
         ctk.CTkLabel(self.sidebar_frame, text="Phiên bản 2.0.1",
                      font=("Arial", 11), text_color="#444444").pack(side="bottom", pady=15)
@@ -265,10 +265,10 @@ class App(ctk.CTk):
         self.create_stats_content(stats_f, img_stats)
         self.frames["Thống kê"] = stats_f
 
-        # 6. Văn bản tùy chỉnh
-        tpl_f = ctk.CTkFrame(self.main_view, fg_color="transparent")
-        self.create_templates_content(tpl_f, img_note)
-        self.frames["Văn bản tùy chỉnh"] = tpl_f
+        # 6. Thông tin tùy chỉnh
+        info_f = ctk.CTkFrame(self.main_view, fg_color="transparent")
+        self.create_info_custom_content(info_f, img_note)
+        self.frames["Thông tin tùy chỉnh"] = info_f
 
     def show_frame(self, name):
         for frame in self.frames.values():
@@ -285,57 +285,9 @@ class App(ctk.CTk):
     # DASHBOARD
     # ==============================
     def create_dashboard_content(self, parent):
-        icon_size = (20, 20)
-        icon_path = os.path.join("data", "icon")
-
-        try:
-            img_gift   = ctk.CTkImage(Image.open(os.path.join(icon_path, "gift.ico")),          size=icon_size)
-            img_key    = ctk.CTkImage(Image.open(os.path.join(icon_path, "keyword.ico")),        size=icon_size)
-            img_emoji  = ctk.CTkImage(Image.open(os.path.join(icon_path, "emoji.ico")),          size=icon_size)
-            img_pause  = ctk.CTkImage(Image.open(os.path.join(icon_path, "pause.ico")),          size=icon_size)
-            img_trash  = ctk.CTkImage(Image.open(os.path.join(icon_path, "trash.ico")),          size=icon_size)
-            img_report = ctk.CTkImage(Image.open(os.path.join(icon_path, "report_history.ico")), size=icon_size)
-        except Exception as e:
-            print(f"Lỗi nạp icon Dashboard: {e}")
-            img_gift = img_key = img_emoji = img_pause = img_trash = img_report = None
-
-        # Top Bar
-        top_bar = ctk.CTkFrame(parent, height=110, fg_color=("#ffffff", "#1c1c1e"), corner_radius=20)
-        top_bar.pack(fill="x", padx=15, pady=15)
-        top_bar.pack_propagate(False)
-
-        # Quick Actions Frame
-        actions_frame = ctk.CTkFrame(top_bar, fg_color="transparent")
-        actions_frame.pack(side="left", fill="x", expand=True, padx=15, pady=15)
-
-        ctk.CTkLabel(actions_frame, text="Hành động nhanh", font=("Arial", 11, "bold"),
-                     text_color=("#fe2c55", "#ff5577")).pack(anchor="w", pady=(0, 8))
-
-        buttons_frame = ctk.CTkFrame(actions_frame, fg_color="transparent")
-        buttons_frame.pack(fill="x")
-
-        ctk.CTkButton(buttons_frame, text=" Quà tặng", image=img_gift, compound="left", width=100, height=50, corner_radius=14, fg_color="#fe2c55",
-                      hover_color="#e11d48", text_color="#fff", font=("Arial", 14, "bold"),
-                      command=lambda: self.open_modal("Quà tặng")).pack(side="left", padx=5)
-
-        ctk.CTkButton(buttons_frame, text=" Từ khóa", image=img_key, compound="left", width=100, height=50, corner_radius=14, fg_color="#0a84ff",
-                      hover_color="#007aff", text_color="#fff", font=("Arial", 14, "bold"),
-                      command=lambda: self.open_modal("Từ khóa")).pack(side="left", padx=5)
-
-        ctk.CTkButton(buttons_frame, text=" Emoji", image=img_emoji, compound="left", width=100, height=50, corner_radius=14, fg_color="#ff9f0a",
-                      hover_color="#ff9500", text_color="#fff", font=("Arial", 14, "bold"),
-                      command=lambda: self.open_modal("Emoji")).pack(side="left", padx=5)
-
-        btn_conn = ctk.CTkButton(top_bar, text="Kết nối Live", width=140, height=40, corner_radius=20,
-                                 fg_color="#fe2c55", hover_color="#e11d48",
-                                 text_color="#fff", font=("Arial", 13, "bold"),
-                                 command=self.toggle_connection)
-        btn_conn.pack(side="right", padx=15, pady=15)
-        self.connect_buttons.append(btn_conn)
-
         # Dash Stats
         self.dash_stats_frame = ctk.CTkFrame(parent, fg_color="transparent")
-        self.dash_stats_frame.pack(fill="x", padx=15, pady=(0, 15))
+        self.dash_stats_frame.pack(fill="x", padx=15, pady=(15, 15))
         
         self.dash_labels = {}
         for label_text in ["Bình luận", "Quà", "Vào phòng", "Like", "Đã đọc TTS"]:
@@ -356,10 +308,12 @@ class App(ctk.CTk):
                      text_color=("#000000", "#ffffff"),
                      font=("Arial", 18, "bold")).pack(side="left")
 
-        self.status_label = ctk.CTkLabel(header, text="● Offline",
-                                         text_color="#8e8e93",
-                                         font=("Arial", 13, "bold"))
-        self.status_label.pack(side="right")
+        btn_conn = ctk.CTkButton(header, text="Kết nối Live", width=120, height=32, corner_radius=16,
+                                 fg_color="#fe2c55", hover_color="#e11d48",
+                                 text_color="#fff", font=("Arial", 12, "bold"),
+                                 command=self.toggle_connection)
+        btn_conn.pack(side="right")
+        self.connect_buttons.append(btn_conn)
 
         self.log_box = ctk.CTkTextbox(
             log_container,
@@ -481,52 +435,174 @@ class App(ctk.CTk):
 
         self.render_stats_page()
 
-    def create_templates_content(self, parent, icon):
+    def create_info_custom_content(self, parent, icon):
+        # Header
         header = ctk.CTkFrame(parent, height=70, fg_color=("#ffffff", "#1c1c1e"), corner_radius=20)
         header.pack(fill="x", padx=15, pady=15)
         header.pack_propagate(False)
 
-        ctk.CTkLabel(header, text="📝 Văn bản tùy chỉnh",
+        ctk.CTkLabel(header, text=" 📝 Thông tin tùy chỉnh", image=icon, compound="left",
                      text_color=("#000000", "#ffffff"), font=("Arial", 18, "bold")).pack(side="left", padx=15, pady=15)
                      
         ctk.CTkButton(header, text="💾 Lưu cài đặt", fg_color="#34c759", hover_color="#30d158",
                       text_color="#fff", width=140, corner_radius=15, font=("Arial", 12, "bold"),
                       command=self.save_settings).pack(side="right", padx=15, pady=15)
+        
+        # Tabs container
+        tabs_frame = ctk.CTkFrame(parent, fg_color="transparent")
+        tabs_frame.pack(fill="x", padx=15, pady=0)
+        
+        self.custom_tabs = {}
+        self.active_tab_btn = None
+        
+        content_container = ctk.CTkFrame(parent, fg_color=("#ffffff", "#1c1c1e"), corner_radius=20)
+        content_container.pack(fill="both", expand=True, padx=15, pady=(10, 15))
+        
+        def select_tab(tab_name):
+            if self.active_tab_btn:
+                self.active_tab_btn.configure(fg_color=("#f2f2f7", "#2c2c2e"), text_color=("#333", "#ccc"))
+            self.active_tab_btn = self.custom_tabs[tab_name]
+            self.active_tab_btn.configure(fg_color="#fe2c55", text_color="#fff")
+            
+            for widget in content_container.winfo_children():
+                widget.destroy()
+                
+            if tab_name == "Văn bản":
+                self.render_custom_text_tab(content_container)
+            elif tab_name == "Quà tặng":
+                self.render_custom_dict_tab(content_container, "Quà tặng", dm.GIFT_FILE, "Tên quà (VD: Rose)", "Lời đọc (VD: hoa hồng)")
+            elif tab_name == "Từ khóa":
+                self.render_custom_dict_tab(content_container, "Từ khóa viết tắt", dm.ABBR_FILE, "Từ gốc (VD: ko)", "Từ đọc (VD: không)")
+            elif tab_name == "Emoji":
+                self.render_custom_dict_tab(content_container, "Emoji", dm.EMOJI_FILE, "Emoji (VD: ❤️)", "Lời đọc (VD: thả tim)")
 
-        body = ctk.CTkScrollableFrame(parent, fg_color=("#ffffff", "#1c1c1e"), corner_radius=20)
-        body.pack(fill="both", expand=True, padx=15, pady=(0, 15))
-        
-        # --- Comment ---
-        self._create_template_input(body, "Bình luận (Comment)", self.tpl_comment_var, "Ví dụ: {name} nói: {comment}\nCác biến hỗ trợ: {name}, {comment}")
-        
-        # --- Gift ---
-        self._create_template_input(body, "Tặng quà (Gift)", self.tpl_gift_var, "Ví dụ: {name} tặng {gift}\nCác biến hỗ trợ: {name}, {gift}")
-        
-        # --- Join ---
-        self._create_template_input(body, "Vào phòng (Join)", self.tpl_join_var, "Ví dụ: {name} đã vào phòng\nCác biến hỗ trợ: {name}")
-        
-        # --- Like ---
-        self._create_template_input(body, "Lượt thích (Like)", self.tpl_like_var, "Ví dụ: {name} thả {count} tim\nCác biến hỗ trợ: {name}, {count}")
+        tabs = ["Văn bản", "Quà tặng", "Từ khóa", "Emoji"]
+        for tab in tabs:
+            btn = ctk.CTkButton(tabs_frame, text=tab, width=100, height=35, corner_radius=12,
+                                fg_color=("#f2f2f7", "#2c2c2e"), text_color=("#333", "#ccc"),
+                                font=("Arial", 13, "bold"), hover_color="#e11d48",
+                                command=lambda t=tab: select_tab(t))
+            btn.pack(side="left", padx=5)
+            self.custom_tabs[tab] = btn
+            
+        select_tab("Văn bản")
+
+    def render_custom_text_tab(self, container):
+        scroll = ctk.CTkScrollableFrame(container, fg_color="transparent")
+        scroll.pack(fill="both", expand=True, padx=5, pady=5)
+        self._create_template_input(scroll, "Bình luận (Comment)", self.tpl_comment_var, "Ví dụ: {name} nói: {comment}")
+        self._create_template_input(scroll, "Tặng quà (Gift)", self.tpl_gift_var, "Ví dụ: {name} tặng {gift}")
+        self._create_template_input(scroll, "Vào phòng (Join)", self.tpl_join_var, "Ví dụ: {name} đã vào phòng")
+        self._create_template_input(scroll, "Lượt thích (Like)", self.tpl_like_var, "Ví dụ: {name} thả {count} tim")
 
     def _create_template_input(self, parent, title, variable, hint):
         frame = ctk.CTkFrame(parent, fg_color=("#f2f2f7", "#2c2c2e"), corner_radius=12)
-        frame.pack(fill="x", padx=20, pady=10)
-        
+        frame.pack(fill="x", padx=15, pady=8)
         ctk.CTkLabel(frame, text=title, font=("Arial", 14, "bold"), text_color=("#000", "#fff")).pack(anchor="w", padx=15, pady=(15, 5))
-        
         entry = ctk.CTkEntry(frame, textvariable=variable, width=500, height=40, font=("Arial", 13), border_width=0, fg_color=("#ffffff", "#1c1c1e"))
         entry.pack(anchor="w", padx=15, pady=5)
+        ctk.CTkLabel(frame, text=hint, font=("Arial", 11), text_color=("#666", "#aaa")).pack(anchor="w", padx=15, pady=(0, 15))
+
+    def render_custom_dict_tab(self, container, title, file_path, placeholder_k, placeholder_v):
+        input_frame = ctk.CTkFrame(container, fg_color="transparent")
+        input_frame.pack(fill="x", padx=15, pady=15)
         
-        ctk.CTkLabel(frame, text=hint, font=("Arial", 11), text_color=("#666", "#aaa"), justify="left").pack(anchor="w", padx=15, pady=(0, 15))
+        k_entry = ctk.CTkEntry(input_frame, placeholder_text=placeholder_k, width=180, height=38, corner_radius=10, border_width=0, fg_color=("#f2f2f7", "#2c2c2e"))
+        k_entry.pack(side="left", padx=5)
+        v_entry = ctk.CTkEntry(input_frame, placeholder_text=placeholder_v, width=220, height=38, corner_radius=10, border_width=0, fg_color=("#f2f2f7", "#2c2c2e"))
+        v_entry.pack(side="left", padx=5)
+        
+        list_frame = ctk.CTkScrollableFrame(container, fg_color="transparent")
+        list_frame.pack(fill="both", expand=True, padx=10, pady=(0, 15))
+        
+        def reload_list():
+            for widget in list_frame.winfo_children():
+                widget.destroy()
+            try:
+                data = dm.load_json(file_path)
+            except Exception:
+                data = {}
+            for k, v in data.items():
+                row = ctk.CTkFrame(list_frame, fg_color=("#f2f2f7", "#2c2c2e"), corner_radius=10)
+                row.pack(fill="x", pady=4, padx=5)
+                ctk.CTkLabel(row, text=f"• {k}", font=("Arial", 12, "bold"), text_color=("#000", "#fff"), width=150, anchor="w").pack(side="left", padx=15, pady=12)
+                ctk.CTkLabel(row, text=v, font=("Arial", 12), text_color=("#333", "#ccc"), anchor="w").pack(side="left", padx=5, fill="x", expand=True)
+                
+                ctk.CTkButton(row, text="✏️ Sửa", width=60, height=28, corner_radius=8, fg_color="#0a84ff", hover_color="#007aff", text_color="#fff",
+                              font=("Arial", 11, "bold"), command=lambda key=k, val=v: self.open_edit_popup(file_path, key, val, reload_list)).pack(side="right", padx=5)
+                ctk.CTkButton(row, text="🗑 Xóa", width=60, height=28, corner_radius=8, fg_color="#ef4444", hover_color="#dc2626", text_color="#fff",
+                              font=("Arial", 11, "bold"), command=lambda key=k: delete_item(key)).pack(side="right", padx=5)
+
+        def add_item():
+            k = k_entry.get().strip()
+            v = v_entry.get().strip()
+            if k and v:
+                data = dm.load_json(file_path)
+                data[k] = v
+                dm.save_json(file_path, data)
+                k_entry.delete(0, "end")
+                v_entry.delete(0, "end")
+                reload_list()
+                
+        def delete_item(key):
+            data = dm.load_json(file_path)
+            if key in data:
+                del data[key]
+                dm.save_json(file_path, data)
+                reload_list()
+                
+        ctk.CTkButton(input_frame, text="➕ Thêm mới", fg_color="#34c759", hover_color="#30d158", text_color="#fff",
+                      height=38, corner_radius=10, font=("Arial", 12, "bold"), command=add_item).pack(side="left", padx=10)
+                      
+        reload_list()
+
+    def open_edit_popup(self, file_path, old_key, old_val, callback):
+        if hasattr(self, "edit_modal") and self.edit_modal.winfo_exists():
+            self.edit_modal.destroy()
+            
+        self.edit_modal = ctk.CTkToplevel(self)
+        self.edit_modal.title("Sửa thông tin")
+        
+        # Căn giữa popup theo cửa sổ chính
+        w, h = 380, 180
+        x = self.winfo_x() + (self.winfo_width() // 2) - (w // 2)
+        y = self.winfo_y() + (self.winfo_height() // 2) - (h // 2)
+        self.edit_modal.geometry(f"{w}x{h}+{x}+{y}")
+        
+        # Chống nháy màn hình và giữ trên cùng
+        self.edit_modal.transient(self)
+        self.edit_modal.grab_set()
+        
+        ctk.CTkLabel(self.edit_modal, text=f"Đang sửa: {old_key}", font=("Arial", 16, "bold")).pack(pady=(20, 10))
+        
+        val_entry = ctk.CTkEntry(self.edit_modal, width=280, height=40, font=("Arial", 13))
+        val_entry.pack(pady=(0, 15))
+        val_entry.insert(0, old_val)
+        
+        def save():
+            new_val = val_entry.get().strip()
+            if new_val:
+                data = dm.load_json(file_path)
+                data[old_key] = new_val
+                dm.save_json(file_path, data)
+                callback()
+                self.edit_modal.destroy()
+                
+        btn_frame = ctk.CTkFrame(self.edit_modal, fg_color="transparent")
+        btn_frame.pack(pady=0)
+        
+        ctk.CTkButton(btn_frame, text="Lưu", width=100, height=35, corner_radius=10, fg_color="#34c759", hover_color="#30d158", font=("Arial", 12, "bold"), command=save).pack(side="left", padx=10)
+        ctk.CTkButton(btn_frame, text="Đóng", width=100, height=35, corner_radius=10, fg_color="#8e8e93", hover_color="#666", font=("Arial", 12, "bold"), command=self.edit_modal.destroy).pack(side="left", padx=10)
 
     def register_live_event(self, event_type, data=None):
         if event_type == "comment":
             self.session_stats["comments"] += 1
         elif event_type == "gift":
-            self.session_stats["gifts"] += 1
+            gift_count = data.get("count", 1)
+            self.session_stats["gifts"] += gift_count
             self.session_stats["gift_history"].insert(0, f"{data['nickname']} tặng {data['gift']}")
             self.session_stats["gift_history"] = self.session_stats["gift_history"][0:100]
-            self.session_stats["top_gifters"][data["nickname"]] = self.session_stats["top_gifters"].get(data["nickname"], 0) + 1
+            self.session_stats["top_gifters"][data["nickname"]] = self.session_stats["top_gifters"].get(data["nickname"], 0) + gift_count
         elif event_type == "join":
             self.session_stats["joins"] += 1
         elif event_type == "like":
@@ -1097,108 +1173,7 @@ class App(ctk.CTk):
             paused = self.tiktok_manager.toggle_pause()
             self.add_log("⏸ TTS đang tạm dừng..." if paused else "▶ TTS tiếp tục hoạt động.")
 
-    # ==============================
-    # MODAL QUẢN LÝ DỮ LIỆU
-    # ==============================
-    def open_modal(self, title):
-        if self.opened_modal is not None and self.opened_modal.winfo_exists():
-            self.opened_modal.lift()
-            self.opened_modal.focus_set()
-            return
 
-        modal = ctk.CTkToplevel(self)
-        self.opened_modal = modal
-        modal.title(f"Quản lý {title}")
-        modal.geometry("520x620")
-        modal.attributes("-topmost", True)
-
-        icon_path  = os.path.join("data", "icon")
-        modal_icon = None
-        file_path  = ""
-
-        try:
-            if title == "Quà tặng":
-                img_file  = "gift.ico"
-                file_path = dm.GIFT_FILE
-            elif title == "Từ khóa":
-                img_file  = "keyword.ico"
-                file_path = dm.ABBR_FILE
-            else:
-                img_file  = "emoji.ico"
-                file_path = dm.EMOJI_FILE
-
-            full_icon_path = os.path.join(icon_path, img_file)
-            modal.after(200, lambda: modal.iconbitmap(full_icon_path))
-            modal_icon = ctk.CTkImage(Image.open(full_icon_path), size=(26, 26))
-        except Exception as e:
-            print(f"Lỗi nạp icon modal: {e}")
-
-        modal.after(10, lambda: modal.focus_force())
-
-        def on_close():
-            self.opened_modal = None
-            modal.destroy()
-
-        modal.protocol("WM_DELETE_WINDOW", on_close)
-
-        ctk.CTkLabel(modal, text=f"  Danh sách {title}", image=modal_icon, compound="left",
-                     font=("Arial", 22, "bold")).pack(pady=(25, 20))
-
-        current_data = dm.load_json(file_path)
-
-        entry_frame = ctk.CTkFrame(modal, fg_color="transparent")
-        entry_frame.pack(fill="x", padx=25)
-
-        placeholder_key = "Tên quà (VD: Rose)" if title == "Quà tặng" else "Từ gốc"
-        key_entry = ctk.CTkEntry(entry_frame, placeholder_text=placeholder_key, width=165, height=35)
-        key_entry.pack(side="left", padx=5)
-
-        val_entry = ctk.CTkEntry(entry_frame, placeholder_text="Lời đọc TTS", width=165, height=35)
-        val_entry.pack(side="left", padx=5)
-
-        list_frame = ctk.CTkScrollableFrame(modal, width=460, height=350, fg_color="#dadada")
-        list_frame.pack(pady=20, padx=20, fill="both", expand=True)
-
-        def render_list():
-            for widget in list_frame.winfo_children():
-                widget.destroy()
-            for k, v in current_data.items():
-                row = ctk.CTkFrame(list_frame, fg_color="#ffffff", corner_radius=6)
-                row.pack(fill="x", pady=3, padx=5)
-                ctk.CTkLabel(row, text=f"• {k}", font=("Arial", 12, "bold"),
-                             width=130, anchor="w", text_color="#000").pack(side="left", padx=10, pady=8)
-                ctk.CTkLabel(row, text=v, font=("Arial", 12), text_color="#333",
-                             wraplength=180, justify="left").pack(side="left", padx=5)
-                ctk.CTkButton(row, text="Xóa", width=50, height=26,
-                              fg_color="#ef4444", hover_color="#dc2626",
-                              command=lambda x=k: delete_item(x)).pack(side="right", padx=10)
-
-        def add_item():
-            k = key_entry.get().strip()
-            v = val_entry.get().strip()
-            if k and v:
-                current_data[k] = v
-                dm.save_json(file_path, current_data)
-                key_entry.delete(0, "end")
-                val_entry.delete(0, "end")
-                render_list()
-
-        def delete_item(key):
-            if key in current_data:
-                del current_data[key]
-                dm.save_json(file_path, current_data)
-                render_list()
-
-        ctk.CTkButton(entry_frame, text="Thêm", width=75, height=35,
-                      fg_color="#10b981", hover_color="#059669",
-                      font=("Arial", 13, "bold"), command=add_item).pack(side="left", padx=5)
-
-        render_list()
-
-        ctk.CTkButton(modal, text="Lưu và Đóng",
-                      fg_color="#fe2c55", hover_color="#e11d48",
-                      height=42, font=("Arial", 14, "bold"),
-                      command=on_close).pack(side="bottom", pady=20)
 
 
 if __name__ == "__main__":

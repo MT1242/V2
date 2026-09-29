@@ -465,15 +465,61 @@ class TikTokManager:
                 return
 
             uid, nickname = self._get_user_info(e)
-            gift_name = self.gift_map.get(getattr(e.gift, 'name', None), getattr(e.gift, 'name', ''))
-            template_var = getattr(app_ref, "tpl_gift_var", None)
-            template = template_var.get() if template_var else "{name} tặng {gift}"
-            text = template.replace("{name}", nickname).replace("{gift}", gift_name)
+            
+            original_gift_name = getattr(e.gift, 'name', '') or 'Quà'
+            
+            # --- Auto-add new gifts ---
+            if original_gift_name not in self.gift_map and original_gift_name != 'Quà':
+                self.gift_map[original_gift_name] = original_gift_name
+                dm.save_json(dm.GIFT_FILE, self.gift_map)
 
-            self.log_func(text)
-            self.enqueue_tts(text, self.current_speed)
-            if hasattr(app_ref, "register_live_event"):
-                app_ref.register_live_event("gift", {"nickname": nickname, "gift": gift_name})
+            gift_name = self.gift_map.get(original_gift_name, original_gift_name)
+            gift_key = f"{uid}:{original_gift_name}"
+
+            # --- Buffer & Aggregate (Chống spam và gom combo) ---
+            if not hasattr(self, 'gift_buffer'):
+                self.gift_buffer = {}
+
+            if gift_key not in self.gift_buffer:
+                self.gift_buffer[gift_key] = {
+                    "count": 0,
+                    "nickname": nickname,
+                    "gift_name": gift_name,
+                    "timer": None
+                }
+
+            self.gift_buffer[gift_key]["count"] += 1
+
+            # Hủy timer cũ nếu có
+            if self.gift_buffer[gift_key]["timer"]:
+                self.gift_buffer[gift_key]["timer"].cancel()
+
+            def process_gift(k):
+                data = self.gift_buffer.pop(k, None)
+                if not data: return
+                
+                count = data["count"]
+                nick = data["nickname"]
+                gname = data["gift_name"]
+                
+                # Nếu tặng nhiều hơn 1 (combo), chèn số lượng vào trước tên quà
+                if count > 1:
+                    gname = f"{count} {gname}"
+
+                template_var = getattr(app_ref, "tpl_gift_var", None)
+                template = template_var.get() if template_var else "{name} tặng {gift}"
+                text = template.replace("{name}", nick).replace("{gift}", gname)
+
+                self.log_func(text)
+                self.enqueue_tts(text, self.current_speed)
+                
+                if hasattr(app_ref, "register_live_event"):
+                    app_ref.register_live_event("gift", {"nickname": nick, "gift": gname, "count": count})
+
+            # Chờ 2.5 giây kể từ lần tặng cuối cùng trong combo rồi mới đọc
+            self.gift_buffer[gift_key]["timer"] = threading.Timer(2.5, process_gift, args=[gift_key])
+            self.gift_buffer[gift_key]["timer"].start()
+            # --------------------------------------------------
 
         # =====================================================
         # 👋 JOIN
