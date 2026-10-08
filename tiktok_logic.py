@@ -464,6 +464,12 @@ class TikTokManager:
             if getattr(e.gift, "diamond_count", 0) <= 0:
                 return
 
+            # Nếu quà thuộc dạng combo (streak) nhưng chưa kết thúc (repeat_end == 0) -> bỏ qua, chờ sự kiện chốt combo cuối cùng
+            gift_type = getattr(e.gift, "type", 0)
+            repeat_end = getattr(e.gift, "repeat_end", None)
+            if gift_type == 1 and repeat_end == 0:
+                return
+
             uid, nickname = self._get_user_info(e)
             
             original_gift_name = getattr(e.gift, 'name', '') or 'Quà'
@@ -474,6 +480,9 @@ class TikTokManager:
                 dm.save_json(dm.GIFT_FILE, self.gift_map)
 
             gift_name = self.gift_map.get(original_gift_name, original_gift_name)
+            
+            # Lấy số lượng quà thực tế từ TikTok (repeat_count hoặc gift count)
+            repeat_count = getattr(e.gift, "repeat_count", 0) or getattr(e, "repeat_count", 1) or 1
             gift_key = f"{uid}:{original_gift_name}"
 
             # --- Buffer & Aggregate (Chống spam và gom combo) ---
@@ -482,13 +491,14 @@ class TikTokManager:
 
             if gift_key not in self.gift_buffer:
                 self.gift_buffer[gift_key] = {
-                    "count": 0,
+                    "count": repeat_count,
                     "nickname": nickname,
                     "gift_name": gift_name,
                     "timer": None
                 }
-
-            self.gift_buffer[gift_key]["count"] += 1
+            else:
+                # Cập nhật lại count mới nhất nếu lớn hơn
+                self.gift_buffer[gift_key]["count"] = max(self.gift_buffer[gift_key]["count"], repeat_count)
 
             # Hủy timer cũ nếu có
             if self.gift_buffer[gift_key]["timer"]:
@@ -516,8 +526,8 @@ class TikTokManager:
                 if hasattr(app_ref, "register_live_event"):
                     app_ref.register_live_event("gift", {"nickname": nick, "gift": gname, "count": count})
 
-            # Chờ 2.5 giây kể từ lần tặng cuối cùng trong combo rồi mới đọc
-            self.gift_buffer[gift_key]["timer"] = threading.Timer(2.5, process_gift, args=[gift_key])
+            # Chờ 2.0 giây kể từ lần tặng cuối cùng trong combo rồi mới đọc
+            self.gift_buffer[gift_key]["timer"] = threading.Timer(2.0, process_gift, args=[gift_key])
             self.gift_buffer[gift_key]["timer"].start()
             # --------------------------------------------------
 
